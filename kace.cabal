@@ -24,6 +24,9 @@ source-repository head
 
 library
   exposed-modules:
+      Ball
+      Brick
+      Constants
       World
   other-modules:
       Paths_kace
@@ -32,6 +35,8 @@ library
   build-depends:
       base >=4.7 && <5
     , gloss
+    , microlens
+    , microlens-th
     , random
   default-language: Haskell2010
 
@@ -46,5 +51,7 @@ executable kace-exe
       base >=4.7 && <5
     , gloss
     , kace
+    , microlens
+    , microlens-th
     , random
   default-language: Haskell2010

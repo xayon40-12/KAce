@@ -1,5 +1,6 @@
 module Main where
 
+import Constants
 import Graphics.Gloss
 import System.Random
 import World
@@ -11,4 +12,4 @@ main :: IO ()
 main = do
   g <- getStdGen
   let ran = randoms g
-  play window white 60 (initWorld ran) draw input update
+  play window white 300 (initWorld ran) draw input update
