@@ -24,10 +24,15 @@ newBricks n = [Brick n (fromIntegral $ x * bw, 0) | x <- [0 .. s -1]]
 reachedBottom [] = False
 reachedBottom ((Brick _ (_, y)) : _) = - y >= h - bh
 
-newRow n bricks = (count, nbricks <> newBricks n)
+newRow n ran bricks = let (nran, knbricks) = kill ran nbricks [] in (nran, fbricks <> knbricks)
   where
-    count = length bricks - length nbricks
-    nbricks = filter alive (down <$> bricks)
+    f x = x * x
+    fbricks = filter alive (down <$> bricks)
+    nbricks = newBricks (f n)
+    kill [] bs nbs = ([], bs <> nbs)
+    kill rs [] nbs = (rs, nbs)
+    kill (r : rs) (b : bs) nbs = if r `mod` p == 0 then kill rs bs nbs else kill rs bs (b : nbs)
+    p = 2
 
 down (Brick l (x, y)) = Brick l (x, y - bh)
 
@@ -39,7 +44,7 @@ drawbrick (Brick life (x', y')) =
       Color white $ Translate (x + 2) (y -12) $ Scale 0.1 0.1 $ Text (show life)
     ]
   where
-    l = 2
+    l = 1
     x = x' + l
     y = y' - l
     w' = bw - 2 * l

@@ -37,7 +37,7 @@ topleft :: [Picture] -> Picture
 topleft = Translate (- w / 2) (h / 2) . Pictures
 
 initWorld :: Ran -> World
-initWorld ran = World 0 0 ran ([], 1) [] Playing
+initWorld ran = World 1 0 ran ([], 1) (newBricks 1) (Aiming (0, 0))
 
 draw :: World -> Picture
 draw w = case w ^. status of
@@ -63,18 +63,18 @@ update _ w
   | null (w ^. balls . _1) && isPlaying (w ^. status) =
     if reachedBottom (w ^. bricks)
       then w & status .~ Dead
-      else let (count, nbricks) = newRow n (w ^. bricks) in w & balls . _2 +~ count & bricks .~ nbricks & status .~ Aiming (0, 0) & stage .~ n
+      else let (nran, nbricks) = newRow n (w ^. ran) (w ^. bricks) in w & bricks .~ nbricks & status .~ Aiming (0, 0) & stage .~ n & ran .~ nran
   where
     n = w ^. stage + 1
 update _ w = case w ^. status of
-  Playing -> w & balls . _1 .~ nballs & bricks .~ nbricks
+  Playing -> w & balls . _1 .~ nballs & bricks .~ nbricks & balls . _2 +~ count & score +~ del
     where
       balls' = filter insidewalls $ clampwalls . move <$> (w ^. balls . _1)
       bricks' = w ^. bricks
-      (nballs, nbricks) = if null balls' then (balls', bricks') else foldl foldballs ([], bricks') balls'
-      foldballs (bs, brs) b = let (nb, nbrs) = foldl foldbricks (b, []) brs in (nb : bs, nbrs)
-      foldbricks (b, brs) br = let (nb, nbr) = collide b br in (nb, addbrick nbr brs)
-      addbrick br@(Brick l _) brs = if l > 0 then br : brs else brs
+      (nballs, del, (nbricks, count)) = if null balls' then (balls', 0, (bricks', 0)) else foldl foldballs ([], 0, (bricks', 0)) balls'
+      foldballs (bs, del, (brs, c)) b = let (nb, del', nbrs) = foldl foldbricks (b, del, ([], c)) brs in (nb : bs, del', nbrs)
+      foldbricks (b, del, brs) br = let (nb, nbr, del') = collide b br in (nb, del + del', addbrick nbr brs)
+      addbrick br@(Brick l _) (brs, c) = if l > 0 then (br : brs, c) else (brs, c + 1)
   _ -> w
 
 collide b@((x, y), (dx, dy)) br@(Brick life (bx, by)) =
@@ -83,13 +83,13 @@ collide b@((x, y), (dx, dy)) br@(Brick life (bx, by)) =
       if ur
         then
           if dr
-            then (((x, y), (- dx, dy)), Brick (life -1) (bx, by))
-            else (((x, y), (dx, - dy)), Brick (life -1) (bx, by))
+            then (((x, y), (- dx, dy)), Brick (life -1) (bx, by), 1)
+            else (((x, y), (dx, - dy)), Brick (life -1) (bx, by), 1)
         else
           if dr
-            then (((x, y), (dx, - dy)), Brick (life -1) (bx, by))
-            else (((x, y), (- dx, dy)), Brick (life -1) (bx, by))
-    else (b, br)
+            then (((x, y), (dx, - dy)), Brick (life -1) (bx, by), 1)
+            else (((x, y), (- dx, dy)), Brick (life -1) (bx, by), 1)
+    else (b, br, 0)
   where
     ur = - bh * (x - bx) - bw * (y - by) < 0
     dr = bh * (x - bx) - bw * (y - (by - bh)) > 0
