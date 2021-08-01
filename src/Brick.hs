@@ -22,7 +22,7 @@ newBricks n = [Brick n (fromIntegral $ x * bw, 0) | x <- [0 .. s -1]]
     bw = fst brickSize
 
 reachedBottom [] = False
-reachedBottom ((Brick _ (_, y)) : _) = - y >= h - bh
+reachedBottom ((Brick _ (_, y)) : bs) = (- y >= h - bh) || reachedBottom bs
 
 newRow n ran bricks = let (nran, knbricks) = kill ran nbricks [] in (nran, fbricks <> knbricks)
   where

@@ -83,15 +83,15 @@ collide b@((x, y), (dx, dy)) br@(Brick life (bx, by)) =
       if ur
         then
           if dr
-            then (((x, y), (- dx, dy)), Brick (life -1) (bx, by), 1)
-            else (((x, y), (dx, - dy)), Brick (life -1) (bx, by), 1)
+            then (((x, y), (abs dx, dy)), Brick (life -1) (bx, by), 1)
+            else (((x, y), (dx, abs dy)), Brick (life -1) (bx, by), 1)
         else
           if dr
-            then (((x, y), (dx, - dy)), Brick (life -1) (bx, by), 1)
-            else (((x, y), (- dx, dy)), Brick (life -1) (bx, by), 1)
+            then (((x, y), (dx, - abs dy)), Brick (life -1) (bx, by), 1)
+            else (((x, y), (- abs dx, dy)), Brick (life -1) (bx, by), 1)
     else (b, br, 0)
   where
     ur = - bh * (x - bx) - bw * (y - by) < 0
     dr = bh * (x - bx) - bw * (y - (by - bh)) > 0
-    inside b@((x, y), (dx, dy)) br@(Brick life (bx, by)) = y > by - bh && y < by && x > bx && x < bx + bw
+    inside b@((x, y), (dx, dy)) br@(Brick life (bx, by)) = y >= by - bh && y <= by && x >= bx && x <= bx + bw
     s = ballSize
