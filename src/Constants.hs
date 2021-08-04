@@ -25,8 +25,10 @@ bw = fromIntegral $ fst brickSize
 bh :: Float
 bh = fromIntegral $ snd brickSize
 
+px :: Float
 px = sw / 2
 
+py :: Float
 py = 2 * ballSize - sh
 
 out :: Point

@@ -1,19 +1,36 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module Ball where
 
+import Brick
 import Constants
 import Graphics.Gloss
+import Lens.Micro.TH
 
-type Ball = (Point, Point)
+data Ball = Ball
+  { _ballPos :: !Point,
+    _ballDir :: !Point
+  }
+
+makeFields ''Ball
 
 type Balls = ([Ball], Int)
 
-drawball ((x, y), _) = Color green $ Translate x y $ Circle ballSize
+drawball :: Ball -> Picture
+drawball (Ball (x, y) _) = Color green $ Translate x y $ ThickCircle (ballSize / 2) ballSize
 
-move ((px, py), (dx, dy)) = ((px + dx, py + dy), (dx, dy))
+move :: Ball -> Ball
+move (Ball (x, y) (dx, dy)) = Ball (x + dx, y + dy) (dx, dy)
 
-insidewalls ((px, py), (_, dy)) = (px >= 0 && px < sw && py <= 0 && py > - sh) || (dy > 0 && py < - sh)
+insidewalls :: Ball -> Bool
+insidewalls (Ball (x, y) (_, dy)) = (x >= 0 && x < sw && y <= 0 && y > - sh) || (dy > 0 && y < - sh)
 
-clampwalls ((px, py), (dx, dy)) = ((npx, npy), (ndx, ndy))
+clampwalls :: Ball -> Ball
+clampwalls (Ball (bx, by) (dx, dy)) = Ball (npx, npy) (ndx, ndy)
   where
     wx x y
       | x < 0 && y > - h = (- x, - dx)
@@ -22,7 +39,10 @@ clampwalls ((px, py), (dx, dy)) = ((npx, npy), (ndx, ndy))
     wy y
       | y > 0 = (- y, - dy)
       | otherwise = (y, dy)
-    (npx, ndx) = wx px py
-    (npy, ndy) = wy py
+    (npx, ndx) = wx bx by
+    (npy, ndy) = wy by
     w = fromIntegral $ fst size
     h = fromIntegral $ snd size
+
+inside :: Ball -> Brick -> Bool
+inside (Ball (x, y) _) (Brick _ (bx, by) _) = y >= by - bh && y <= by && x >= bx && x <= bx + bw

@@ -11,5 +11,5 @@ window = InWindow "KAce" size (10, 10)
 main :: IO ()
 main = do
   g <- getStdGen
-  let ran = randoms g
-  play window white 300 (initWorld ran) draw input update
+  let ran0 = randoms g
+  play window white 300 (initWorld ran0) draw input update
