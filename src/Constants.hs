@@ -1,13 +1,17 @@
 module Constants where
 
+import Graphics.Gloss (Point)
+
+type Ran = [Int]
+
 size :: (Int, Int)
 size = (400, 400)
 
-w :: Float
-w = fromIntegral $ fst size
+sw :: Float
+sw = fromIntegral $ fst size
 
-h :: Float
-h = fromIntegral $ snd size
+sh :: Float
+sh = fromIntegral $ snd size
 
 ballSize :: Float
 ballSize = bh / 4
@@ -21,6 +25,9 @@ bw = fromIntegral $ fst brickSize
 bh :: Float
 bh = fromIntegral $ snd brickSize
 
-px = w / 2
+px = sw / 2
 
-py = 2 * ballSize - h
+py = 2 * ballSize - sh
+
+out :: Point
+out = (-100000, -100000)

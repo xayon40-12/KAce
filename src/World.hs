@@ -12,8 +12,6 @@ import Graphics.Gloss.Interface.Pure.Game
 import Lens.Micro
 import Lens.Micro.TH
 
-type Ran = [Int]
-
 data Status = Aiming Point | Playing | Dead
 
 data World = World
@@ -34,27 +32,33 @@ isPlaying Playing = True
 isPlaying _ = False
 
 topleft :: [Picture] -> Picture
-topleft = Translate (- w / 2) (h / 2) . Pictures
+topleft = Translate (- sw / 2) (sh / 2) . Pictures
 
 initWorld :: Ran -> World
-initWorld ran = World 1 0 ran ([], 1) (newBricks 1) (Aiming (0, 0))
+initWorld ran = World 1 0 ran1 ([], 1) nbricks (Aiming out)
+  where
+    (ran1, nbricks) = newBricks 1 ran
 
 draw :: World -> Picture
 draw w = case w ^. status of
-  Playing -> topleft $ tscore : (drawball <$> w ^. balls . _1) <> nbricks
-  Aiming (x, y) -> topleft $ tscore : [drawball ((px, py), (0, 0)), Line [(px, py), (px + x, y - h / 2)]] <> nbricks
+  Playing -> topleft $ tscore : lim : (drawball <$> w ^. balls . _1) <> nbricks
+  Aiming (x, y) -> topleft $ tscore : lim : nbricks <> inside (x, y)
   Dead -> Color red $ Scale 0.1 0.1 $ Text ("Score: " <> show (w ^. score) <> ", stage: " <> show (w ^. stage))
   where
+    inside (x, y) = drawball ((px, py), (0, 0)) : [Line [(px, py), (px + x, y - sh / 2)] | x >= - sw / 2 && x <= sw / 2 && y <= sh / 2 && y >= bh - sh / 2]
     nbricks = drawbrick <$> (w ^. bricks)
-    tscore = Translate 5 (5 - h) $ Scale 0.1 0.1 $ Text ("s: " <> show (w ^. score) <> "   b: " <> show (w ^. balls . _2))
+    tscore = Translate 5 (5 - sh) $ Scale 0.1 0.1 $ Text ("s: " <> show (w ^. score) <> "   b: " <> show (w ^. balls . _2))
+    lim = Color red $ Line [(0, bh - sh), (sw, bh - sh)]
 
 input :: Event -> World -> World
 input (EventMotion (x, y)) w | isAiming (w ^. status) = w & status .~ Aiming (x, y)
-input (EventKey (MouseButton LeftButton) Down _ (x, y)) w | isAiming (w ^. status) = w & status .~ Playing & balls . _1 .~ nballs
+input (EventKey (MouseButton LeftButton) Down _ (x, y)) w = case w ^. status of
+  Aiming (x, y) | y > bh - sh / 2 -> w & status .~ Playing & balls . _1 .~ nballs
+  _ -> w
   where
     nballs = [((px - i * d * fst dir, py - i * d * snd dir), dir) | i <- fromIntegral <$> [0 .. (w ^. balls . _2) -1]]
-    d = 4 * ballSize
-    dir = normalize (x, y - h / 2 - py)
+    d = 0.25 * ballSize
+    dir = normalize (x, y - sh / 2 - py)
     normalize (x, y) = let l = sqrt (x * x + y * y) in (x / l, y / l)
 input _ w = w
 
@@ -63,7 +67,7 @@ update _ w
   | null (w ^. balls . _1) && isPlaying (w ^. status) =
     if reachedBottom (w ^. bricks)
       then w & status .~ Dead
-      else let (nran, nbricks) = newRow n (w ^. ran) (w ^. bricks) in w & bricks .~ nbricks & status .~ Aiming (0, 0) & stage .~ n & ran .~ nran
+      else let (nran, nbricks) = newRow n (w ^. ran) (w ^. bricks) in w & bricks .~ nbricks & status .~ Aiming out & stage .~ n & ran .~ nran
   where
     n = w ^. stage + 1
 update _ w = case w ^. status of
@@ -74,24 +78,25 @@ update _ w = case w ^. status of
       (nballs, del, (nbricks, count)) = if null balls' then (balls', 0, (bricks', 0)) else foldl foldballs ([], 0, (bricks', 0)) balls'
       foldballs (bs, del, (brs, c)) b = let (nb, del', nbrs) = foldl foldbricks (b, del, ([], c)) brs in (nb : bs, del', nbrs)
       foldbricks (b, del, brs) br = let (nb, nbr, del') = collide b br in (nb, del + del', addbrick nbr brs)
-      addbrick br@(Brick l _) (brs, c) = if l > 0 then (br : brs, c) else (brs, c + 1)
+      addbrick br (brs, c) = if alive br then (br : brs, c) else (brs, c + 1)
   _ -> w
 
-collide b@((x, y), (dx, dy)) br@(Brick life (bx, by)) =
+collide b@((x, y), (dx, dy)) br =
   if inside b br
     then
       if ur
         then
           if dr
-            then (((x, y), (abs dx, dy)), Brick (life -1) (bx, by), 1)
-            else (((x, y), (dx, abs dy)), Brick (life -1) (bx, by), 1)
+            then (((x, y), (abs dx, dy)), br & life -~ 1, 1)
+            else (((x, y), (dx, abs dy)), br & life -~ 1, 1)
         else
           if dr
-            then (((x, y), (dx, - abs dy)), Brick (life -1) (bx, by), 1)
-            else (((x, y), (- abs dx, dy)), Brick (life -1) (bx, by), 1)
+            then (((x, y), (dx, - abs dy)), br & life -~ 1, 1)
+            else (((x, y), (- abs dx, dy)), br & life -~ 1, 1)
     else (b, br, 0)
   where
+    (bx, by) = br ^. pos
     ur = - bh * (x - bx) - bw * (y - by) < 0
     dr = bh * (x - bx) - bw * (y - (by - bh)) > 0
-    inside b@((x, y), (dx, dy)) br@(Brick life (bx, by)) = y >= by - bh && y <= by && x >= bx && x <= bx + bw
+    inside b@((x, y), (dx, dy)) br@(Brick _ (bx, by) _) = y >= by - bh && y <= by && x >= bx && x <= bx + bw
     s = ballSize
