@@ -47,7 +47,7 @@ executable kace-exe
       Paths_kace
   hs-source-dirs:
       app
-  ghc-options: -Wall -threaded -O2 -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -funbox-strict-fields -O2 -rtsopts -with-rtsopts=-N -with-rtsopts=--nonmoving-gc -with-rtsopts=-s
   build-depends:
       base >=4.7 && <5
     , gloss
