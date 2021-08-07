@@ -28,6 +28,7 @@ dependencies:
 
 ghc-options:
   - -Wall
+  - -funbox-strict-fields
 
 library:
   source-dirs: src
@@ -38,9 +39,8 @@ executables:
     source-dirs:         app
     ghc-options:
     - -threaded
-    - -funbox-strict-fields
-    - -O2
     - -rtsopts
+    - -O2
     - -with-rtsopts=-N
     - -with-rtsopts=--nonmoving-gc
     - -with-rtsopts=-s
