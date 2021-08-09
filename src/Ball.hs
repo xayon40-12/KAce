@@ -18,8 +18,6 @@ data Ball = Ball
 
 makeFields ''Ball
 
-type Balls = ([Ball], Int)
-
 drawball :: Ball -> Picture
 drawball (Ball (x, y) _) = Color green $ Translate x y $ ThickCircle (ballSize / 2) ballSize
 

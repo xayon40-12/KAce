@@ -39,6 +39,7 @@ library
     , microlens
     , microlens-th
     , random
+    , vector
   default-language: Haskell2010
 
 executable kace-exe
@@ -47,7 +48,7 @@ executable kace-exe
       Paths_kace
   hs-source-dirs:
       app
-  ghc-options: -Wall -funbox-strict-fields -threaded -rtsopts -O2 -with-rtsopts=-N -with-rtsopts=--nonmoving-gc -with-rtsopts=-s
+  ghc-options: -Wall -funbox-strict-fields -threaded -O2 -rtsopts "-with-rtsopts=-N -c -A256M -s"
   build-depends:
       base >=4.7 && <5
     , gloss
@@ -55,4 +56,5 @@ executable kace-exe
     , microlens
     , microlens-th
     , random
+    , vector
   default-language: Haskell2010

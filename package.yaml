@@ -24,7 +24,6 @@ dependencies:
 - random
 - microlens
 - microlens-th
-# - stream-fusion
 
 ghc-options:
   - -Wall
@@ -39,10 +38,8 @@ executables:
     source-dirs:         app
     ghc-options:
     - -threaded
-    - -rtsopts
     - -O2
-    - -with-rtsopts=-N
-    - -with-rtsopts=--nonmoving-gc
-    - -with-rtsopts=-s
+    - -rtsopts
+    - '"-with-rtsopts=-N -c -A256M -s"'
     dependencies:
     - kace

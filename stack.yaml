@@ -40,8 +40,7 @@ packages:
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
-# extra-deps:
-#   - stream-fusion-0.1.2.5@sha256:22dcb043d3bccef294e895a99571b770c64ce7498977bc8817e7a9945845cbcb,1702
+#extra-deps: []
 
 
 # allow-newer: true
