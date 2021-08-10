@@ -37,11 +37,9 @@ topleft :: [Picture] -> Picture
 topleft = Translate (- sw / 2) (sh / 2) . Pictures
 
 initWorld :: Ran -> World
-initWorld ran0 = World 1 0 nran [] 1000 nbricks (Aiming out)
+initWorld ran0 = World 1 0 nran [] 1 nbricks (Aiming out)
   where
-    (nran, nbricks) = go 8 $ newBricks 1 ran0
-    go 0 rb = rb
-    go i (ran1, bricks1) = go (i -1) $ newRow i ran1 bricks1
+    (nran, nbricks) = newBricks 1 ran0
 
 draw :: World -> Picture
 draw w = case w ^. status of
@@ -59,7 +57,7 @@ input (EventMotion (x, y)) w | isAiming (w ^. status) = w & status .~ Aiming (x,
 input (EventKey (MouseButton LeftButton) Down _ (x, y)) w | isAiming (w ^. status) && y > bh - sh / 2 = w & status .~ Playing & balls .~ nballs
   where
     nballs = [Ball (px - i * d * dx, py - i * d * dy) (dx, dy) | i <- fromIntegral <$> [0 .. w ^. maxBalls -1]]
-    d = 4 * ballSize * 0.1
+    d = 4 * ballSize
     (dx, dy) = normalize (x, y - sh / 2 - py)
     normalize (a, b) = let l = sqrt (a * a + b * b) in (a / l, b / l)
 input _ w = w

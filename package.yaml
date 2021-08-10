@@ -40,6 +40,6 @@ executables:
     - -threaded
     - -O2
     - -rtsopts
-    - '"-with-rtsopts=-N -c -A256M -s"'
+    - '"-with-rtsopts=-N -c -A16M"'
     dependencies:
     - kace
